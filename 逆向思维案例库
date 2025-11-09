@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>逆向思维AI助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background-color: #4a6ee0;
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        .chat-header .ai-avatar {
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            color: #4a6ee0;
+            font-weight: bold;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .ai-message {
+            align-self: flex-start;
+            background-color: #f0f4ff;
+            border-bottom-left-radius: 5px;
+            color: #333;
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background-color: #4a6ee0;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            background-color: #f9fafc;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+        
+        .chat-input input:focus {
+            border-color: #4a6ee0;
+        }
+        
+        .chat-input button {
+            margin-left: 10px;
+            padding: 12px 20px;
+            background-color: #4a6ee0;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        .chat-input button:hover {
+            background-color: #3a5ec0;
+        }
+        
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .suggestion {
+            padding: 10px 15px;
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .suggestion:hover {
+            background-color: #f0f4ff;
+            border-color: #4a6ee0;
+        }
+        
+        .typing-indicator {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #f0f4ff;
+            border-radius: 18px;
+            border-bottom-left-radius: 5px;
+            align-self: flex-start;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .typing-dots span {
+            height: 8px;
+            width: 8px;
+            border-radius: 50%;
+            background-color: #4a6ee0;
+            opacity: 0.6;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dots span:nth-child(1) {
+            animation-delay: 0s;
+        }
+        
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.6;
+            }
+            30% {
+                transform: translateY(-5px);
+                opacity: 1;
+            }
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>逆向思维AI助手</h1>
+            <p class="subtitle">探索因果反转与属性对立的创新设计案例</p>
+        </header>
+        
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="ai-avatar">AI</div>
+                <div>逆向思维助手 - 在线为您解答</div>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai-message">
+                    您好！我是逆向思维AI助手，我可以为您介绍因果反转和属性对立的创新设计案例。请问您想了解哪种逆向思维方法？
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <input type="text" id="userInput" placeholder="输入您的问题，例如：什么是因果反转？">
+                <button id="sendButton">发送</button>
+            </div>
+        </div>
+        
+        <div class="suggestions">
+            <div class="suggestion" data-question="什么是因果反转？">什么是因果反转？</div>
+            <div class="suggestion" data-question="因果反转有哪些案例？">因果反转有哪些案例？</div>
+            <div class="suggestion" data-question="什么是属性对立？">什么是属性对立？</div>
+            <div class="suggestion" data-question="属性对立有哪些案例？">属性对立有哪些案例？</div>
+            <div class="suggestion" data-question="逆向思维还有哪些类型？">逆向思维还有哪些类型？</div>
+        </div>
+        
+        <footer>
+            <p>逆向思维AI助手 - 专为通用技术课程设计 | 案例库持续更新中</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatMessages = document.getElementById('chatMessages');
+            const userInput = document.getElementById('userInput');
+            const sendButton = document.getElementById('sendButton');
+            const suggestions = document.querySelectorAll('.suggestion');
+            
+            // 案例库
+            const caseLibrary = {
+                '因果反转': [
+                    '安全气囊：为"碰撞"这一结果提供保护，而不是试图阻止碰撞发生。',
+                    '自毁式螺丝：为防止被拆卸，设计为"拧动时头部断裂"，使拆卸无法完成。',
+                    '过期变色标签：为"变质"这一结果提供可视化的警示，而不是依赖用户记忆保质期。',
+                    '防拆包装：为"被拆封"这一结果设计，一旦拆封就会留下明显痕迹，无法复原。'
+                ],
+                '属性对立': [
+                    '软质螺丝刀：将传统螺丝刀"硬"的属性反转为"软"，手柄可弯曲，便于在狭窄不规则空间使用。',
+                    '动态二维码：将支付码"静态"的属性反转为"动态"，防止被替换或偷拍，增强安全性。',
+                    '金属玻璃：拥有金属的强度，但具备玻璃的超强弹性，结合了两种材料的优点。',
+                    '自清洁涂层：将表面"易脏"的属性反转为"自清洁"，减少维护需求。'
+                ],
+                '逆向思维类型': [
+                    '因果反转：将事物的结果作为设计的起点。',
+                    '属性对立：将事物的核心属性推向其对立面。',
+                    '功能反转：将产品的功能进行反向设计。',
+                    '结构反转：改变产品的传统结构形式。',
+                    '原理反向：采用相反的物理或化学原理实现功能。'
+                ]
+            };
+            
+            // 发送消息函数
+            function sendMessage() {
+                const message = userInput.value.trim();
+                if (message === '') return;
+                
+                // 添加用户消息
+                addMessage(message, 'user');
+                userInput.value = '';
+                
+                // 显示"正在输入"指示器
+                const typingIndicator = document.createElement('div');
+                typingIndicator.classList.add('typing-indicator');
+                typingIndicator.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+                chatMessages.appendChild(typingIndicator);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // 模拟AI思考
+                setTimeout(() => {
+                    // 移除"正在输入"指示器
+                    chatMessages.removeChild(typingIndicator);
+                    
+                    let response = '抱歉，我没有理解您的问题。您可以问我关于"因果反转"或"属性对立"的案例，或者询问逆向思维的类型。';
+                    
+                    if (message.includes('因果反转') && message.includes('案例')) {
+                        response = '好的，以下是一些因果反转的设计案例：\n\n' + 
+                                   caseLibrary['因果反转'].join('\n\n');
+                    } else if (message.includes('属性对立') && message.includes('案例')) {
+                        response = '好的，以下是一些属性对立的设计案例：\n\n' + 
+                                   caseLibrary['属性对立'].join('\n\n');
+                    } else if (message.includes('因果反转')) {
+                        response = '因果反转是一种逆向思维方法，它将通常被视为"结果"的现象作为设计的起点。比如安全气囊不是试图阻止碰撞，而是为碰撞这一结果提供保护。';
+                    } else if (message.includes('属性对立')) {
+                        response = '属性对立是一种逆向思维方法，它将事物的核心属性推向其对立面。比如软质螺丝刀就是将"硬"属性反转为"软"。';
+                    } else if (message.includes('逆向思维') && message.includes('类型')) {
+                        response = '逆向思维有多种类型，主要包括：\n\n' + 
+                                   caseLibrary['逆向思维类型'].join('\n\n');
+                    }
+                    
+                    // 逐字显示AI回复
+                    typeMessage(response, 'ai');
+                }, 1500);
+            }
+            
+            // 逐字显示消息
+            function typeMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(sender === 'user' ? 'user-message' : 'ai-message');
+                chatMessages.appendChild(messageDiv);
+                
+                let index = 0;
+                const typingSpeed = 30; // 打字速度（毫秒）
+                
+                function typeCharacter() {
+                    if (index < text.length) {
+                        // 处理换行符
+                        if (text.charAt(index) === '\n') {
+                            messageDiv.innerHTML += '<br>';
+                        } else {
+                            messageDiv.textContent += text.charAt(index);
+                        }
+                        index++;
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        setTimeout(typeCharacter, typingSpeed);
+                    }
+                }
+                
+                typeCharacter();
+            }
+            
+            // 添加消息到聊天窗口（非逐字显示）
+            function addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(sender === 'user' ? 'user-message' : 'ai-message');
+                messageDiv.textContent = text;
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // 事件监听
+            sendButton.addEventListener('click', sendMessage);
+            
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            suggestions.forEach(suggestion => {
+                suggestion.addEventListener('click', function() {
+                    userInput.value = this.getAttribute('data-question');
+                    sendMessage();
+                });
+            });
+            
+            // 初始示例问题
+            setTimeout(() => {
+                addMessage('您可以尝试问我："因果反转有哪些案例？" 或 "属性对立有哪些案例？"', 'ai');
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
